@@ -21,7 +21,7 @@ namespace ControleDeAcesso.Middlewares
             if (!string.IsNullOrEmpty(queryString) && (queryString.Contains("'") || queryString.Contains("--") || queryString.Contains(";")))
             {
                 context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                await context.Response.WriteAsync("Potential SQL injection detected.");
+                await context.Response.WriteAsync("Acesso Negado: Nada para ver aqui.");
                 return;
             }
 
