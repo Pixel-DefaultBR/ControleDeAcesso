@@ -1,0 +1,6 @@
+@ControleDeAcesso_HostAddress = http://localhost:5113
+
+GET {{ControleDeAcesso_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
