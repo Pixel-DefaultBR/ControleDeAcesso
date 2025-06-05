@@ -116,3 +116,4 @@ C:\Users\ventu\Documents\Programming\C#\Mobile\ControleDeAcesso\ControleDeAcesso
 C:\Users\ventu\Documents\Programming\C#\Mobile\ControleDeAcesso\ControleDeAcesso\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 C:\Users\ventu\Documents\Programming\C#\Mobile\ControleDeAcesso\ControleDeAcesso\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\ventu\Documents\Programming\C#\Mobile\ControleDeAcesso\ControleDeAcesso\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\ventu\Documents\Programming\C#\Mobile\ControleDeAcesso\ControleDeAcesso\obj\Debug\net8.0\ControleDeAcesso.sourcelink.json

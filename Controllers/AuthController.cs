@@ -9,19 +9,15 @@ using ControleDeAcesso.Services;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly ITokenRepository _tokenRepository;
-    private readonly IConfiguration _configuration;
     private readonly IMapper _mapper;
 
     public AuthController(IAuthService authService, ITokenRepository tokenRepository, IConfiguration configuration, IMapper mapper)
     {
         _authService = authService;
-        _tokenRepository = tokenRepository;
-        _configuration = configuration;
         _mapper = mapper;
     }
 

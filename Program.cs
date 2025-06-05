@@ -2,6 +2,8 @@ using ControleDeAcesso.Data;
 using ControleDeAcesso.Data.Repository.Auth;
 using ControleDeAcesso.Data.Repository.Token;
 using ControleDeAcesso.Mappers;
+using ControleDeAcesso.Middlewares;
+using ControleDeAcesso.Middlewares.Extensions;
 using ControleDeAcesso.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins",
+        builder => builder.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
+});
 
 // JWT Middleware configuration
 builder.Services.AddAuthentication(options =>
@@ -90,7 +101,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowAllOrigins");
+
 app.UseAuthorization();
+
+app.UseInjectionDetector();
 
 app.MapControllers();
 

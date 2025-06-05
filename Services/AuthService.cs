@@ -115,6 +115,7 @@ namespace ControleDeAcesso.Services
         public async Task<Result<AuthModel>> UpdateUserAsync(int id, AuthModel user)
         {
             var existingUser = await _authRepository.GetUserByIdAsync(id);
+
             if (existingUser == null)
             {
                 return Result<AuthModel>.Failure("Usuário não encontrado.");
