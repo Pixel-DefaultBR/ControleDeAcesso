@@ -10,6 +10,8 @@ namespace ControleDeAcesso.Model
         public string Password { get; set; } = string.Empty;
         public UserEnum Role { get; set; } = UserEnum.User;
         public string Token { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
+        public string? VerificationCode { get; set; } = string.Empty;
         public DateTime TokenExpiration { get; set; }
     }
 }

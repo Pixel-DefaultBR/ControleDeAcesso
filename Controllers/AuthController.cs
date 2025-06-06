@@ -54,7 +54,21 @@ public class AuthController : ControllerBase
         }
 
         var loginResponse = _mapper.Map<LoginResponseDto>(result.Value);
+        loginResponse.Message = "Login válido. Verifique o código enviado por e-mail.";
 
         return Ok(loginResponse);
     }
+
+    [HttpPost("verify2FA")]
+    public async Task<IActionResult> Verify2FA([FromBody] Verify2FARequestDto request)
+    {
+        var result = await _authService.Verify2FAAsync(request.Email, request.VerificationCode);
+
+        if (!result.IsSuccess)
+            return Unauthorized("Código de verificação inválido.");
+
+        var verifyResponse = _mapper.Map<Verify2FAResponseDto>(result.Value);
+        return Ok(verifyResponse);
+    }
+
 }

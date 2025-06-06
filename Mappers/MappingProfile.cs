@@ -12,6 +12,8 @@ namespace ControleDeAcesso.Mappers
             CreateMap<AuthModel, LoginResponseDto>();
             CreateMap<RegisterRequestDto, AuthModel>().ReverseMap();
             CreateMap<AuthModel, RegisterResponseDto>();
+            CreateMap<Verify2FARequestDto, AuthModel>();
+            CreateMap<AuthModel, Verify2FAResponseDto>();
         }
     }
 }

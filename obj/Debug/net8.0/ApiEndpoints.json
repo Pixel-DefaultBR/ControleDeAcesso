@@ -30,5 +30,21 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AuthController",
+    "Method": "Verify2FA",
+    "RelativePath": "api/auth/verify2FA",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "ControleDeAcesso.DTOS.Verify2FARequestDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]

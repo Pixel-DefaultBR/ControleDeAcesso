@@ -12,14 +12,16 @@ namespace ControleDeAcesso.Services
         private readonly IAuthRepository _authRepository;
         private readonly ITokenRepository _tokenRepository;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
         private readonly string _secretKey;
 
-        public AuthService(IAuthRepository authRepository, ITokenRepository tokenRepository, IConfiguration configuration)
+        public AuthService(IAuthRepository authRepository, ITokenRepository tokenRepository, IConfiguration configuration, IEmailService emailService)
         {
             _authRepository = authRepository;
             _tokenRepository = tokenRepository;
             _configuration = configuration;
             _secretKey = _configuration["Jwt:ChaveSuperSecretaEver"];
+            _emailService = emailService;
         }
 
         public async Task CommitAsync()
@@ -103,13 +105,31 @@ namespace ControleDeAcesso.Services
 
             if (passwordVerificationResult == PasswordVerificationResult.Failed)
             {
-                return Result<AuthModel>.Failure("Senha incorreta.");
+               return Result<AuthModel>.Failure("Senha incorreta.");
             }
 
-            string token = await _tokenRepository.GenerateTokenAsync(userResult, _secretKey);
-            userResult.Token = token;
+            await _emailService.SendEmailAsync("mim", "voce", "Seu codigo", userResult);
 
             return Result<AuthModel>.Success(userResult);
+        }
+
+        public async Task<Result<AuthModel>> Verify2FAAsync(string email, string verificationCode)
+        {
+            var user = await _authRepository.GetUserByEmailAsync(email);
+
+            if (user == null || user.VerificationCode != verificationCode)
+            {
+                return Result<AuthModel>.Failure("Código inválido ou expirado.");
+            }
+
+            user.VerificationCode = null;
+            await _authRepository.UpdateUserAsync(user.Id, user);
+            await _authRepository.CommitAsync();
+
+            string token = await _tokenRepository.GenerateTokenAsync(user, _secretKey);
+            user.Token = token;
+
+            return Result<AuthModel>.Success(user);
         }
 
         public async Task<Result<AuthModel>> UpdateUserAsync(int id, AuthModel user)
@@ -130,5 +150,6 @@ namespace ControleDeAcesso.Services
 
             return Result<AuthModel>.Success(existingUser);
         }
+
     }
 }

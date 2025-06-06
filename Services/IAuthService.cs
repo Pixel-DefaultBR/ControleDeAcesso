@@ -12,6 +12,7 @@ namespace ControleDeAcesso.Services
         Task<Result<AuthModel>> DeleteUserAsync(int id);
 
         Task<Result<AuthModel>> LoginAsync(string email, string password);
+        Task<Result<AuthModel>> Verify2FAAsync(string email, string verificationCode);
         Task CommitAsync();
     }
 }
