@@ -13,12 +13,14 @@ using Microsoft.AspNetCore.Mvc;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ITwoFactorTokenService _tokenService;
     private readonly IMapper _mapper;
 
-    public AuthController(IAuthService authService, ITokenRepository tokenRepository, IConfiguration configuration, IMapper mapper)
+    public AuthController(IAuthService authService, ITwoFactorTokenService tokenService ,IConfiguration configuration, IMapper mapper)
     {
         _authService = authService;
         _mapper = mapper;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -52,6 +54,8 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(result.ErrorMessage ?? "Email ou senha inválidos.");
         }
+
+        var token = await _tokenService.GetTokenAsync(result.Value.Email);
 
         var loginResponse = _mapper.Map<LoginResponseDto>(result.Value);
         loginResponse.Message = "Login válido. Verifique o código enviado por e-mail.";

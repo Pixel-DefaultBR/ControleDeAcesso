@@ -13,15 +13,20 @@ namespace ControleDeAcesso.Services
         private readonly ITokenRepository _tokenRepository;
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+        private readonly ITwoFactorTokenService _tokenService;
         private readonly string _secretKey;
 
-        public AuthService(IAuthRepository authRepository, ITokenRepository tokenRepository, IConfiguration configuration, IEmailService emailService)
+        private TwoFactorTokenModel tempToken;
+
+        public AuthService(IAuthRepository authRepository, 
+            ITokenRepository tokenRepository, IConfiguration configuration, IEmailService emailService, ITwoFactorTokenService tokenService)
         {
             _authRepository = authRepository;
             _tokenRepository = tokenRepository;
             _configuration = configuration;
             _secretKey = _configuration["Jwt:ChaveSuperSecretaEver"];
             _emailService = emailService;
+            _tokenService = tokenService;
         }
 
         public async Task CommitAsync()
@@ -108,6 +113,8 @@ namespace ControleDeAcesso.Services
                return Result<AuthModel>.Failure("Senha incorreta.");
             }
 
+            tempToken = await _tokenService.SaveTokenAsync(email);
+
             await _emailService.SendEmailAsync("mim", "voce", "Seu codigo", userResult);
 
             return Result<AuthModel>.Success(userResult);
@@ -115,6 +122,8 @@ namespace ControleDeAcesso.Services
 
         public async Task<Result<AuthModel>> Verify2FAAsync(string email, string verificationCode)
         {
+            var t = await _tokenService.GetTokenAsync(tempToken.Token);
+
             var user = await _authRepository.GetUserByEmailAsync(email);
 
             if (user == null || user.VerificationCode != verificationCode)
