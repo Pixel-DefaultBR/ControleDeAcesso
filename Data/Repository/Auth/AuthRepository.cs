@@ -41,6 +41,12 @@ namespace ControleDeAcesso.Data.Repository.Auth
             return user;
         }
 
+        public async Task<AuthModel> GetUserByPreAuthTokenIdAsync(string guid)
+        {
+            var user = await _context.AuthModels.FirstOrDefaultAsync(u => u.PreAuthToken == guid);
+            return user;
+        }
+
         public async Task<AuthModel> UpdateUserAsync(int id, AuthModel user)
         {
             var existingUser = await GetUserByIdAsync(id);

@@ -152,7 +152,7 @@
       "Verify2FARequestDto": {
         "type": "object",
         "properties": {
-          "email": {
+          "guid": {
             "type": "string",
             "nullable": true
           },

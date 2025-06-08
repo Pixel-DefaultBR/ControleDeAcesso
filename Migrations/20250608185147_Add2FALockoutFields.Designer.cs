@@ -4,6 +4,7 @@ using ControleDeAcesso.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ControleDeAcesso.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250608185147_Add2FALockoutFields")]
+    partial class Add2FALockoutFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +36,6 @@ namespace ControleDeAcesso.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<int>("Failed2FAAttempts")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -63,9 +63,6 @@ namespace ControleDeAcesso.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("TokenExpiration")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("TwoFABlockedUntil")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("VerificationCode")

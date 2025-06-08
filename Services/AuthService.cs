@@ -1,8 +1,10 @@
 ﻿using ControleDeAcesso.Data.Repository.Auth;
 using ControleDeAcesso.Data.Repository.Token;
+using ControleDeAcesso.DTOS;
 using ControleDeAcesso.Model;
 using ControleDeAcesso.Model.Response;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 
 namespace ControleDeAcesso.Services
@@ -15,11 +17,11 @@ namespace ControleDeAcesso.Services
         private readonly IEmailService _emailService;
         private readonly ITwoFactorTokenService _tokenService;
         private readonly string _secretKey;
+        private readonly TwoFASettingsDto _twoFASettings;
 
-        private TwoFactorTokenModel tempToken;
 
-        public AuthService(IAuthRepository authRepository, 
-            ITokenRepository tokenRepository, IConfiguration configuration, IEmailService emailService, ITwoFactorTokenService tokenService)
+        public AuthService(IAuthRepository authRepository,
+            ITokenRepository tokenRepository, IConfiguration configuration, IEmailService emailService, ITwoFactorTokenService tokenService, IOptions<TwoFASettingsDto> twoFASettings)
         {
             _authRepository = authRepository;
             _tokenRepository = tokenRepository;
@@ -27,6 +29,7 @@ namespace ControleDeAcesso.Services
             _secretKey = _configuration["Jwt:ChaveSuperSecretaEver"];
             _emailService = emailService;
             _tokenService = tokenService;
+            _twoFASettings = twoFASettings.Value;
         }
 
         public async Task CommitAsync()
@@ -35,7 +38,7 @@ namespace ControleDeAcesso.Services
         }
 
         public async Task<Result<AuthModel>> CreateUserAsync(AuthModel user)
-        {            
+        {
             if (user == null)
             {
                 return Result<AuthModel>.Failure("Usuário não pode ser nulo.");
@@ -83,6 +86,7 @@ namespace ControleDeAcesso.Services
         public async Task<Result<AuthModel>> GetUserByIdAsync(int id)
         {
             var user = await _authRepository.GetUserByIdAsync(id);
+
             if (user == null)
             {
                 return Result<AuthModel>.Failure("Usuário não encontrado.");
@@ -94,12 +98,10 @@ namespace ControleDeAcesso.Services
         {
             var userResult = await _authRepository.GetUserByEmailAsync(email);
 
-
             if (string.IsNullOrEmpty(_secretKey))
             {
                 return Result<AuthModel>.Failure("Erro do nosso lado.");
             }
-
             if (userResult == null)
             {
                 return Result<AuthModel>.Failure("Usuário não encontrado.");
@@ -110,28 +112,68 @@ namespace ControleDeAcesso.Services
 
             if (passwordVerificationResult == PasswordVerificationResult.Failed)
             {
-               return Result<AuthModel>.Failure("Senha incorreta.");
+                return Result<AuthModel>.Failure("Senha incorreta.");
             }
 
-            tempToken = await _tokenService.SaveTokenAsync(email);
+            var preAuthToken = Guid.NewGuid().ToString();
 
-            await _emailService.SendEmailAsync("mim", "voce", "Seu codigo", userResult);
+            userResult.PreAuthToken = preAuthToken;
+            userResult.PreAuthTokenExpiration = DateTime.UtcNow.AddMinutes(5);
+
+            await _authRepository.UpdateUserAsync(userResult.Id, userResult);
+            await _authRepository.CommitAsync();
+
+            await _emailService.SendEmailAsync(
+                to: "voce",
+                subject: "Código de Verificação 2FA",
+                body: $"Seu código de verificação é: {userResult.VerificationCode}",
+                model: userResult
+                );
 
             return Result<AuthModel>.Success(userResult);
         }
 
-        public async Task<Result<AuthModel>> Verify2FAAsync(string email, string verificationCode)
+        public async Task<Result<AuthModel>> Verify2FAAsync(string guid, string verificationCode)
         {
-            var t = await _tokenService.GetTokenAsync(tempToken.Token);
+            var user = await _authRepository.GetUserByPreAuthTokenIdAsync(guid);
 
-            var user = await _authRepository.GetUserByEmailAsync(email);
-
-            if (user == null || user.VerificationCode != verificationCode)
+            if (user == null)
             {
+                return Result<AuthModel>.Failure("Usuário não encontrado.");
+            }          
+            if (user.TwoFABlockedUntil.HasValue && user.TwoFABlockedUntil > DateTime.UtcNow)
+            {
+                return Result<AuthModel>.Failure("Usuário temporariamente bloqueado. Tente novamente mais tarde.");
+            }
+            if (user.PreAuthTokenExpiration < DateTime.UtcNow)
+            {
+                user.PreAuthToken = null;
+                user.PreAuthTokenExpiration = null;
+                return Result<AuthModel>.Failure("Token expirado.");
+            }
+            if (user.VerificationCode != verificationCode || user.VerificationCodeExpiration < DateTime.UtcNow)
+            {
+                user.Failed2FAAttempts++;
+
+                if (user.Failed2FAAttempts >= _twoFASettings.MaxAttempts)
+                {
+                    user.TwoFABlockedUntil = DateTime.UtcNow.AddMinutes(_twoFASettings.LockoutDuration); 
+                    user.Failed2FAAttempts = 0; 
+                }
+
+                await _authRepository.UpdateUserAsync(user.Id, user);
+                await _authRepository.CommitAsync();
+
                 return Result<AuthModel>.Failure("Código inválido ou expirado.");
             }
 
             user.VerificationCode = null;
+            user.VerificationCodeExpiration = null;
+            user.PreAuthToken = null;
+            user.PreAuthTokenExpiration = null;
+            user.Failed2FAAttempts = 0;
+            user.TwoFABlockedUntil = null;
+
             await _authRepository.UpdateUserAsync(user.Id, user);
             await _authRepository.CommitAsync();
 
@@ -140,6 +182,7 @@ namespace ControleDeAcesso.Services
 
             return Result<AuthModel>.Success(user);
         }
+
 
         public async Task<Result<AuthModel>> UpdateUserAsync(int id, AuthModel user)
         {
@@ -159,6 +202,5 @@ namespace ControleDeAcesso.Services
 
             return Result<AuthModel>.Success(existingUser);
         }
-
     }
 }

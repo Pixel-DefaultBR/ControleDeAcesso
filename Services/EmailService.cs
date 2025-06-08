@@ -16,6 +16,7 @@ namespace ControleDeAcesso.Services
         {
             var code = GenerateVerifcationCode();
             model.VerificationCode = code;
+            model.VerificationCodeExpiration = DateTime.UtcNow.AddMinutes(5);
 
             await _authRepository.UpdateUserAsync(model.Id, model);
             await _authRepository.CommitAsync();

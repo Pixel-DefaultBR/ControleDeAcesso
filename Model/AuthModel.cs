@@ -12,6 +12,11 @@ namespace ControleDeAcesso.Model
         public string Token { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
         public string? VerificationCode { get; set; } = string.Empty;
+        public string ? PreAuthToken { get; set; } = string.Empty;
+        public DateTime? VerificationCodeExpiration { get; set; } = null;
+        public DateTime? PreAuthTokenExpiration { get; set; } = null;
         public DateTime TokenExpiration { get; set; }
+        public int Failed2FAAttempts { get; set; } = 0;
+        public DateTime? TwoFABlockedUntil { get; set; }
     }
 }

@@ -66,10 +66,10 @@ public class AuthController : ControllerBase
     [HttpPost("verify2FA")]
     public async Task<IActionResult> Verify2FA([FromBody] Verify2FARequestDto request)
     {
-        var result = await _authService.Verify2FAAsync(request.Email, request.VerificationCode);
+        var result = await _authService.Verify2FAAsync(request.Guid, request.VerificationCode);
 
         if (!result.IsSuccess)
-            return Unauthorized("Código de verificação inválido.");
+            return Unauthorized(result.ErrorMessage);
 
         var verifyResponse = _mapper.Map<Verify2FAResponseDto>(result.Value);
         return Ok(verifyResponse);

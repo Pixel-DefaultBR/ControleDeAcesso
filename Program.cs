@@ -1,6 +1,7 @@
 using ControleDeAcesso.Data;
 using ControleDeAcesso.Data.Repository.Auth;
 using ControleDeAcesso.Data.Repository.Token;
+using ControleDeAcesso.DTOS;
 using ControleDeAcesso.Mappers;
 using ControleDeAcesso.Middlewares;
 using ControleDeAcesso.Middlewares.Extensions;
@@ -78,6 +79,8 @@ builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITwoFactorTokenService, TwoFactorTokenService>();
+
+builder.Services.Configure<TwoFASettingsDto>(builder.Configuration.GetSection("TwoFASettings"));
 
 // Add services to the container.
 
